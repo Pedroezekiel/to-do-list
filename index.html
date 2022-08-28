@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TO DO</title>
+</head>
+<body>
+    <div>
+        <h1>This is a ToDo</h1>
+        <p> Here you set your task<p>
+			<div id="getAllTasks">
+
+
+    </div>
+        <label>
+            Input your task <input id="task"/>
+        </label></br>
+
+        <button onClick="setTask()">setTask</button>
+        <button onClick="getTask()">getTask</button>
+
+        <label>
+            Input your completed task id<input id="completedTask"/>
+        </label></br>
+        <button onClick="completedTask()">completedTask</button>
+    </div>
+		<button onClick="getAllTasks()">getAllTasks</button>
+
+    <style>
+        body{
+            text-align: center;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            background-color:darkkhaki;
+        }
+        div{
+            width: 20%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        button{
+            width: 100%;
+            margin: 0px 0px 5px 0px;
+        }
+
+    </style>
+
+    <script
+     src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+    type="application/javascript"
+    ></script>
+
+    <script>
+        const ToDoContractAddress = "0x9DECd395Eedf0533C7EF2362992888d5CA5CbdB4";
+        const ToDoContractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "completedTask",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "date",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"internalType": "bool",
+						"name": "completed",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct ToDo.Task",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_content",
+				"type": "string"
+			}
+		],
+		"name": "setTask",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getNumOfTasks",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "tasks",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "date",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "content",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "completed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+        let TaskContract;
+        let signer;
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "ropsten");
+
+
+      provider.send("eth_requestAccounts", []).then(()=>{
+            provider.listAccounts().then((accounts)=>{
+                signer = provider.getSigner(accounts[0]);
+                TaskContract = new ethers.Contract(
+                    ToDoContractAddress,
+                    ToDoContractABI,
+                    signer
+                )
+            })
+        })
+
+        async function setTask() {
+            const task = document.getElementById("task").value;
+            const setTaskPromise = TaskContract.setTask(task);
+            await setTaskPromise;
+        }
+
+        async function completedTask(){
+            const id = document.getElementById("completedTask").value;
+			const completedTaskPromise = await TaskContract.completedTask(id);
+			const completedTaskResult = await TaskContract.callStatic.completedTask(id)
+			for (let i = 0; i < completedTaskResult.length; i++) {
+				console.log(completedTaskResult[i].toString());
+
+			}
+        }
+
+        async function getAllTasks(){
+            //const task = document.getElementById("getAllTasks").value;
+
+            const numberOfTasks = await TaskContract.getNumOfTasks();
+            for (let i = 0; i < numberOfTasks; i++){
+                const task = await TaskContract.tasks(i)
+				for (let j = 0; j < task.length; j++){
+					console.log(task[j].toString());
+				}
+			}
+        }
+
+
+    </script>
+</body>
+</html>
